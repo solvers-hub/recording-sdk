@@ -1,0 +1,26 @@
+{
+    "entryPoints": [
+        "src/index.ts"
+    ],
+    "out": "docs",
+    "name": "Recording SDK",
+    "includeVersion": true,
+    "readme": "README.md",
+    "excludePrivate": true,
+    "excludeProtected": false,
+    "excludeExternals": true,
+    "githubPages": true,
+    "plugin": [
+        "typedoc-plugin-markdown"
+    ],
+    "theme": "default",
+    "categorizeByGroup": true,
+    "categoryOrder": [
+        "Core",
+        "Types",
+        "Utils",
+        "Errors",
+        "Events",
+        "*"
+    ]
+}
