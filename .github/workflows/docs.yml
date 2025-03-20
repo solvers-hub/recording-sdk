@@ -10,6 +10,7 @@ permissions:
   contents: read
   pages: write
   id-token: write
+  actions: write
 
 # Allow only one concurrent deployment
 concurrency:
@@ -39,6 +40,7 @@ jobs:
         uses: actions/configure-pages@v4
         with:
           enablement: true
+          static_site_generator: "other"
       
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
