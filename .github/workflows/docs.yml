@@ -7,8 +7,6 @@ on:
 
 permissions:
   contents: write
-  pages: write
-  id-token: write
 
 jobs:
   build-and-deploy:
@@ -28,9 +26,14 @@ jobs:
 
       - name: Generate docs
         run: npm run docs
+        
+      # Create .nojekyll file to prevent Jekyll processing
+      - name: Create .nojekyll file
+        run: touch docs/.nojekyll
 
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           folder: docs
-          branch: gh-pages 
+          branch: gh-pages
+          clean: true 
