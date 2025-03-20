@@ -1,0 +1,70 @@
+{
+  "name": "recording-sdk",
+  "version": "1.0.0",
+  "description": "TypeScript SDK for simplified WebRTC recording using Kurento Media Server",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "clean": "rimraf dist",
+    "lint": "eslint \"src/**/*.ts\"",
+    "test": "jest",
+    "prepublishOnly": "npm run clean && npm run build",
+    "docs": "typedoc --out docs src"
+  },
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "keywords": [
+    "kurento",
+    "webrtc",
+    "recording",
+    "sdk",
+    "typescript",
+    "video",
+    "audio",
+    "media",
+    "webm",
+    "mp4"
+  ],
+  "author": "Nitish236",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/solvers-hub/recording-sdk/issues"
+  },
+  "homepage": "https://github.com/solvers-hub/recording-sdk#readme",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "kurento-client": "^7.0.0",
+    "pino": "^9.6.0",
+    "pino-pretty": "^13.0.0",
+    "uuid": "^9.0.0",
+    "ws": "^8.13.0"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.17",
+    "@types/jest": "^29.5.3",
+    "@types/kurento-client": "^6.14.13",
+    "@types/node": "^18.17.1",
+    "@types/uuid": "^9.0.2",
+    "@types/ws": "^8.5.5",
+    "@typescript-eslint/eslint-plugin": "^6.2.0",
+    "@typescript-eslint/parser": "^6.2.0",
+    "eslint": "^8.45.0",
+    "jest": "^29.6.2",
+    "rimraf": "^5.0.1",
+    "ts-jest": "^29.1.1",
+    "typedoc": "^0.24.8",
+    "typescript": "^5.1.6"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

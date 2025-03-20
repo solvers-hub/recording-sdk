@@ -1,0 +1,1130 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recording SDK - Screen Recording Demo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .status-panel {
+            background-color: #f8f9fa;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 4px solid #3498db;
+        }
+
+        .video-container {
+            position: relative;
+            background-color: #000;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        video {
+            width: 100%;
+            display: block;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        button:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
+
+        .pause-button {
+            background-color: #f39c12;
+        }
+
+        .pause-button:hover {
+            background-color: #d35400;
+        }
+
+        .stop-button {
+            background-color: #e74c3c;
+        }
+
+        .stop-button:hover {
+            background-color: #c0392b;
+        }
+
+        .log-container {
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 6px;
+            height: 200px;
+            overflow-y: auto;
+            font-family: monospace;
+        }
+
+        .log-entry {
+            margin: 5px 0;
+            border-bottom: 1px solid #34495e;
+            padding-bottom: 5px;
+        }
+
+        .info {
+            color: #3498db;
+        }
+
+        .success {
+            color: #2ecc71;
+        }
+
+        .warning {
+            color: #f39c12;
+        }
+
+        .error {
+            color: #e74c3c;
+        }
+
+        .recording-info {
+            background-color: #e8f4fc;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .recording-info.visible {
+            display: block;
+        }
+
+        .pause-options {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+
+        .pause-option-btn {
+            background-color: #ff5722;
+        }
+
+        .pause-option-btn:hover:not(:disabled) {
+            background-color: #e64a19;
+        }
+
+        .resume-option-btn {
+            background-color: #4caf50;
+        }
+
+        .resume-option-btn:hover:not(:disabled) {
+            background-color: #388e3c;
+        }
+
+        .mode-selector {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+        }
+
+        .mode-selector label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+        }
+
+        .audio-visualizer {
+            height: 200px;
+            background-color: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+        }
+
+        .audio-bars {
+            display: flex;
+            align-items: flex-end;
+            height: 100px;
+            width: 100%;
+            padding: 0 20px;
+        }
+
+        .audio-bar {
+            flex: 1;
+            background-color: #3498db;
+            margin: 0 2px;
+            border-radius: 2px 2px 0 0;
+            max-height: 100px;
+            min-height: 5px;
+        }
+
+        .microphone-icon {
+            font-size: 48px;
+            color: #3498db;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Recording SDK Demo</h1>
+
+    <div class="container">
+        <div class="status-panel" id="status">Ready to record</div>
+
+        <div class="video-container" id="videoContainer">
+            <video id="localVideo" autoplay playsinline muted></video>
+        </div>
+
+        <div id="audioVisualizer" class="audio-visualizer hidden">
+            <div class="microphone-icon">🎤</div>
+            <div class="audio-bars" id="audioBars"></div>
+        </div>
+
+        <div class="controls">
+            <div class="mode-selector">
+                <h3>Recording Mode:</h3>
+                <label><input type="radio" name="recordingMode" value="screen" checked> Screen + Audio</label>
+                <label><input type="radio" name="recordingMode" value="audio"> Audio Only</label>
+            </div>
+            <div class="mode-selector">
+                <h3>Recording Format:</h3>
+                <label><input type="radio" name="recordingFormat" value="webm" checked> WEBM</label>
+                <label><input type="radio" name="recordingFormat" value="mp4"> MP4</label>
+            </div>
+            <button id="startBtn">Start Recording</button>
+            <button id="pauseBtn" class="pause-button" disabled>Pause</button>
+            <button id="stopBtn" class="stop-button" disabled>Stop Recording</button>
+        </div>
+
+        <div class="pause-options" id="pauseOptions" style="display: none;">
+            <button id="pauseBothBtn" class="pause-option-btn">Pause Both</button>
+            <button id="pauseVideoBtn" class="pause-option-btn">Pause Video Only</button>
+            <button id="pauseAudioBtn" class="pause-option-btn">Pause Audio Only</button>
+        </div>
+
+        <div class="pause-options" id="resumeOptions" style="display: none;">
+            <button id="resumeBothBtn" class="resume-option-btn">Resume Both</button>
+            <button id="resumeVideoBtn" class="resume-option-btn">Resume Video Only</button>
+            <button id="resumeAudioBtn" class="resume-option-btn">Resume Audio Only</button>
+        </div>
+
+        <div class="recording-info" id="recordingInfo">
+            <h3>Recording Information</h3>
+            <div id="recordingDetails"></div>
+        </div>
+
+        <div class="log-container" id="logContainer"></div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const statusEl = document.getElementById('status');
+        const startBtn = document.getElementById('startBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const videoEl = document.getElementById('localVideo');
+        const logContainer = document.getElementById('logContainer');
+        const recordingInfo = document.getElementById('recordingInfo');
+        const recordingDetails = document.getElementById('recordingDetails');
+        const pauseOptions = document.getElementById('pauseOptions');
+        const resumeOptions = document.getElementById('resumeOptions');
+        const modeRadios = document.querySelectorAll('input[name="recordingMode"]');
+        const audioVisualizer = document.getElementById('audioVisualizer');
+        const audioBars = document.getElementById('audioBars');
+
+        // Pause option buttons
+        const pauseBothBtn = document.getElementById('pauseBothBtn');
+        const pauseVideoBtn = document.getElementById('pauseVideoBtn');
+        const pauseAudioBtn = document.getElementById('pauseAudioBtn');
+
+        // Resume option buttons
+        const resumeBothBtn = document.getElementById('resumeBothBtn');
+        const resumeVideoBtn = document.getElementById('resumeVideoBtn');
+        const resumeAudioBtn = document.getElementById('resumeAudioBtn');
+
+        // Global variables
+        let peerConnection;
+        let webSocket;
+        let sessionId = `session-${Date.now()}`;
+        let mediaStream;
+        let pendingCandidates = [];
+        let isRecording = false;
+        let isPaused = false;
+        let pausedAudio = false;
+        let pausedVideo = false;
+
+        // Create audio bars for visualizer
+        for (let i = 0; i < 20; i++) {
+            const bar = document.createElement('div');
+            bar.className = 'audio-bar';
+            bar.style.height = '5px';
+            audioBars.appendChild(bar);
+        }
+
+        // Update the start button text based on selected mode
+        modeRadios.forEach(radio => {
+            radio.addEventListener('change', () => {
+                const videoContainer = document.getElementById('videoContainer');
+
+                if (radio.value === 'screen') {
+                    startBtn.textContent = 'Start Screen Recording';
+                    videoContainer.classList.remove('hidden');
+                    audioVisualizer.classList.add('hidden');
+                } else {
+                    startBtn.textContent = 'Start Audio Recording';
+                    videoContainer.classList.add('hidden');
+                    audioVisualizer.classList.remove('hidden');
+                }
+            });
+        });
+
+        // Initialize with the default mode
+        startBtn.textContent = 'Start Screen Recording';
+
+        // Logging function
+        function log(message, level = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry ${level}`;
+            logEntry.textContent = `${timestamp} - ${message}`;
+            logContainer.appendChild(logEntry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+            console.log(`[${level.toUpperCase()}] ${message}`);
+        }
+
+        // Update status display
+        function updateStatus(message) {
+            statusEl.textContent = message;
+            log(message);
+        }
+
+        // Initialize WebSocket connection
+        function initializeWebSocket(isAudioOnly = false) {
+            // Hardcode the WebSocket server address to ensure it connects to the Express server
+            const wsUrl = 'ws://localhost:3000';
+
+            log(`Connecting to WebSocket server at ${wsUrl}`);
+            webSocket = new WebSocket(wsUrl);
+
+            // Track connection status
+            let connectionTimeout = setTimeout(() => {
+                log('Connection attempt timed out after 5 seconds', 'error');
+                updateStatus('Failed to connect to server - timeout');
+                startBtn.disabled = false;
+            }, 5000);
+
+            webSocket.onopen = () => {
+                clearTimeout(connectionTimeout);
+                log('WebSocket connection established', 'success');
+                updateStatus('Connected to server, initializing recording...');
+
+                // Get the selected recording mode
+                const isAudioOnly = document.querySelector('input[name="recordingMode"]:checked').value === 'audio';
+                // Get the selected recording format
+                const format = document.querySelector('input[name="recordingFormat"]:checked').value;
+
+                // Send start message to begin session setup
+                webSocket.send(JSON.stringify({
+                    action: 'start',
+                    sessionId,
+                    audioOnly: isAudioOnly,
+                    format: format
+                }));
+            };
+
+            webSocket.onmessage = async (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    log(`Received: ${data.action || 'message'}`, 'info');
+
+                    switch (data.action) {
+                        case 'ready':
+                            // Server has created a session, now send our WebRTC offer
+                            sessionId = data.sessionId;
+
+                            // Update UI based on mode
+                            if (data.isAudioOnly) {
+                                log('Server confirmed audio-only recording mode', 'info');
+                            } else {
+                                log('Server confirmed screen+audio recording mode', 'info');
+                            }
+
+                            createPeerConnection();
+                            break;
+
+                        case 'answer':
+                            // Handle SDP answer from server
+                            await processSdpAnswer(data.sdpAnswer);
+                            break;
+
+                        case 'error':
+                            // Handle server errors
+                            log(`Server error: ${data.message}`, 'error');
+                            updateStatus(`Error: ${data.message}`);
+                            resetUI();
+                            break;
+
+                        case 'recording':
+                            // Handle recording state updates
+                            switch (data.state) {
+                                case 'started':
+                                    isRecording = true;
+                                    isPaused = false;
+                                    pauseBtn.disabled = false;
+                                    stopBtn.disabled = false;
+                                    pauseOptions.style.display = 'flex';
+                                    resumeOptions.style.display = 'none';
+
+                                    updateStatus('Recording in progress');
+                                    log('Recording started successfully', 'success');
+                                    break;
+
+                                case 'paused':
+                                    isPaused = true;
+                                    pauseBtn.textContent = 'Resume';
+                                    pauseOptions.style.display = 'none';
+                                    resumeOptions.style.display = 'flex';
+                                    updateStatus(`Recording paused (${data.pauseType || 'both'})`);
+                                    break;
+
+                                case 'resumed':
+                                    if (!data.resumeType || data.resumeType === 'both') {
+                                        isPaused = false;
+                                        pauseBtn.textContent = 'Pause';
+                                        pauseOptions.style.display = 'flex';
+                                        resumeOptions.style.display = 'none';
+                                    }
+                                    updateStatus(`Recording resumed (${data.resumeType || 'both'})`);
+                                    break;
+
+                                case 'stopped':
+                                    isRecording = false;
+                                    isPaused = false;
+                                    pauseBtn.disabled = true;
+                                    stopBtn.disabled = true;
+                                    pauseBtn.textContent = 'Pause';
+                                    pauseOptions.style.display = 'none';
+                                    resumeOptions.style.display = 'none';
+
+                                    // Show recording information if available
+                                    if (data.result) {
+                                        displayRecordingInfo(data.result);
+
+                                        // Show additional info for audio-only recordings
+                                        if (data.result.mediaProfile === 'WEBM_AUDIO_ONLY' ||
+                                            data.result.mediaProfile === 'MP4_AUDIO_ONLY') {
+                                            log(`Audio recording saved: ${data.result.path}`, 'success');
+                                        } else {
+                                            log(`Video recording saved: ${data.result.path}`, 'success');
+                                        }
+                                    }
+
+                                    updateStatus('Recording stopped');
+                                    resetUI();
+                                    break;
+                            }
+                            break;
+                    }
+                } catch (error) {
+                    log(`Error processing message: ${error.message}`, 'error');
+                }
+            };
+
+            webSocket.onerror = (error) => {
+                clearTimeout(connectionTimeout);
+                log('WebSocket connection error - server may not be running', 'error');
+                updateStatus('Connection error: Make sure the server is running on port 3000');
+                startBtn.disabled = false;
+
+                // Show instructions for starting the server
+                log('Run the server with: nodemon --exec ts-node examples/basic-server.ts', 'info');
+            };
+
+            webSocket.onclose = () => {
+                clearTimeout(connectionTimeout);
+                log('WebSocket connection closed', 'warning');
+                updateStatus('Disconnected from server');
+
+                if (isRecording) {
+                    log('Recording was interrupted', 'error');
+                    resetUI();
+                }
+            };
+        }
+
+        // Create RTCPeerConnection and send offer
+        async function createPeerConnection() {
+            log('Creating WebRTC Peer Connection');
+
+            const configuration = {
+                iceServers: [
+                    { urls: 'stun:stun.l.google.com:19302' },
+                    { urls: 'stun:stun1.l.google.com:19302' }
+                ],
+                iceCandidatePoolSize: 10,
+                bundlePolicy: 'max-bundle',
+                rtcpMuxPolicy: 'require'
+            };
+
+            peerConnection = new RTCPeerConnection(configuration);
+
+            // Add tracks from our media stream to the peer connection
+            if (!mediaStream) {
+                log('ERROR: No media stream available for peer connection', 'error');
+                return;
+            }
+
+            const isAudioOnly = !mediaStream.getVideoTracks().length;
+
+            log(`Creating ${isAudioOnly ? 'audio-only' : 'audio-video'} peer connection`);
+            log(`Media stream has ${mediaStream.getTracks().length} tracks`);
+            log(`Audio tracks: ${mediaStream.getAudioTracks().length}, Video tracks: ${mediaStream.getVideoTracks().length}`);
+
+            mediaStream.getTracks().forEach(track => {
+                log(`Adding ${track.kind} track to peer connection: ${track.label || 'unnamed'}`);
+                peerConnection.addTrack(track, mediaStream);
+            });
+
+            // Handle ICE candidates
+            peerConnection.onicecandidate = (event) => {
+                if (event.candidate) {
+                    log('Generated ICE candidate');
+
+                    const candidate = {
+                        candidate: event.candidate.candidate,
+                        sdpMid: event.candidate.sdpMid,
+                        sdpMLineIndex: event.candidate.sdpMLineIndex
+                    };
+
+                    // Send candidate to server
+                    webSocket.send(JSON.stringify({
+                        action: 'candidate',
+                        sessionId,
+                        candidate
+                    }));
+                }
+            };
+
+            // Handle connection state changes
+            peerConnection.onconnectionstatechange = () => {
+                log(`Connection state: ${peerConnection.connectionState}`);
+
+                if (peerConnection.connectionState === 'failed') {
+                    log('Connection failed - trying to restart', 'warning');
+                    restartPeerConnection();
+                }
+            };
+
+            peerConnection.oniceconnectionstatechange = () => {
+                log(`ICE connection state: ${peerConnection.iceConnectionState}`);
+            };
+
+            // Create and send offer
+            try {
+                const offerOptions = {
+                    offerToReceiveAudio: false,
+                    offerToReceiveVideo: false
+                };
+
+                // Create offer
+                const offer = await peerConnection.createOffer(offerOptions);
+
+                // Modify SDP for audio-only if needed
+                if (isAudioOnly) {
+                    log('Creating audio-only SDP offer');
+                }
+
+                await peerConnection.setLocalDescription(offer);
+                log('Created SDP offer, sending to server');
+
+                webSocket.send(JSON.stringify({
+                    action: 'offer',
+                    sessionId,
+                    sdpOffer: offer.sdp,
+                    audioOnly: isAudioOnly
+                }));
+            } catch (error) {
+                log(`Error creating offer: ${error.message}`, 'error');
+            }
+        }
+
+        // Helper function to restart connection if it fails
+        async function restartPeerConnection() {
+            if (!peerConnection) return;
+
+            try {
+                log('Attempting to restart ICE connection', 'warning');
+
+                // Create new offer with ICE restart flag
+                const offer = await peerConnection.createOffer({
+                    iceRestart: true,
+                    offerToReceiveAudio: false,
+                    offerToReceiveVideo: false
+                });
+
+                await peerConnection.setLocalDescription(offer);
+                log('Created restart SDP offer, sending to server');
+
+                webSocket.send(JSON.stringify({
+                    action: 'offer',
+                    sessionId,
+                    sdpOffer: offer.sdp,
+                    restart: true
+                }));
+            } catch (error) {
+                log(`Error restarting connection: ${error.message}`, 'error');
+            }
+        }
+
+        // Process SDP answer from server
+        async function processSdpAnswer(sdpAnswer) {
+            try {
+                log('Processing SDP answer from server');
+
+                // Handle different SDP answer formats
+                // If sdpAnswer is already an object with type and sdp properties
+                if (typeof sdpAnswer === 'object' && sdpAnswer.sdp) {
+                    log('SDP answer is in object format');
+                    await peerConnection.setRemoteDescription(new RTCSessionDescription({
+                        type: 'answer',
+                        sdp: sdpAnswer.sdp
+                    }));
+                }
+                // If it's just the SDP string
+                else if (typeof sdpAnswer === 'string') {
+                    log('SDP answer is in string format');
+                    await peerConnection.setRemoteDescription(new RTCSessionDescription({
+                        type: 'answer',
+                        sdp: sdpAnswer
+                    }));
+                }
+                // If it's something else entirely
+                else {
+                    log('Unexpected SDP answer format:', 'error');
+                    log('SDP Type: ' + typeof sdpAnswer, 'error');
+                    log('SDP Value: ' + JSON.stringify(sdpAnswer), 'error');
+                    throw new Error('Invalid SDP answer format');
+                }
+
+                log('Set remote description successfully', 'success');
+
+                // Add any pending ICE candidates
+                while (pendingCandidates.length > 0) {
+                    const candidate = pendingCandidates.shift();
+                    await peerConnection.addIceCandidate(candidate);
+                }
+            } catch (error) {
+                log(`Error processing answer: ${error.message}`, 'error');
+                // Log more details about the SDP answer for debugging
+                log(`SDP answer type: ${typeof sdpAnswer}`, 'error');
+                log(`SDP answer value: ${JSON.stringify(sdpAnswer)}`, 'error');
+            }
+        }
+
+        // Display recording information
+        function displayRecordingInfo(result) {
+            if (!result) return;
+
+            recordingInfo.classList.add('visible');
+
+            const duration = result.duration ? `${result.duration} seconds` : 'Unknown';
+            const size = result.size ? `${Math.round(result.size / 1024 / 1024 * 100) / 100} MB` : 'Unknown';
+
+            recordingDetails.innerHTML = `
+                <p><strong>File:</strong> ${result.path}</p>
+                <p><strong>Duration:</strong> ${duration}</p>
+                <p><strong>Size:</strong> ${size}</p>
+                <p><strong>Format:</strong> ${result.mediaProfile}</p>
+            `;
+        }
+
+        // Reset UI after recording
+        function resetUI() {
+            startBtn.disabled = false;
+            pauseBtn.disabled = true;
+            stopBtn.disabled = true;
+            pauseBtn.textContent = 'Pause';
+            pauseOptions.style.display = 'none';
+            resumeOptions.style.display = 'none';
+
+            // Stop all media tracks
+            if (mediaStream) {
+                mediaStream.getTracks().forEach(track => track.stop());
+            }
+
+            // Clear video element
+            videoEl.srcObject = null;
+
+            // Close peer connection
+            if (peerConnection) {
+                peerConnection.close();
+                peerConnection = null;
+            }
+
+            // Reset audio visualizer
+            resetAudioVisualizer();
+
+            // Reset pause state
+            pausedAudio = false;
+            pausedVideo = false;
+        }
+
+        // Reset audio visualizer bars
+        function resetAudioVisualizer() {
+            const audioBars = document.querySelectorAll('.audio-bar');
+            audioBars.forEach(bar => {
+                bar.style.height = '5px';
+            });
+        }
+
+        // Function to pause specific tracks
+        function pauseTracks(type) {
+            if (!mediaStream) return;
+
+            if (type === 'both' || type === 'video-only') {
+                pausedVideo = true;
+                mediaStream.getVideoTracks().forEach(track => {
+                    track.enabled = false;
+                    log(`Disabled video track: ${track.label || 'unnamed'}`, 'info');
+                });
+            }
+
+            if (type === 'both' || type === 'audio-only') {
+                pausedAudio = true;
+                mediaStream.getAudioTracks().forEach(track => {
+                    track.enabled = false;
+                    log(`Disabled audio track: ${track.label || 'unnamed'}`, 'info');
+                });
+            }
+        }
+
+        // Function to resume specific tracks
+        function resumeTracks(type) {
+            if (!mediaStream) return;
+
+            if (type === 'both' || type === 'video-only') {
+                pausedVideo = false;
+                mediaStream.getVideoTracks().forEach(track => {
+                    track.enabled = true;
+                    log(`Re-enabled video track: ${track.label || 'unnamed'}`, 'info');
+                });
+            }
+
+            if (type === 'both' || type === 'audio-only') {
+                pausedAudio = false;
+                mediaStream.getAudioTracks().forEach(track => {
+                    track.enabled = true;
+                    log(`Re-enabled audio track: ${track.label || 'unnamed'}`, 'info');
+                });
+            }
+        }
+
+        // Start recording
+        startBtn.addEventListener('click', async () => {
+            try {
+                updateStatus('Checking server status...');
+                startBtn.disabled = true;
+
+                // Get the selected recording mode
+                const isAudioOnly = document.querySelector('input[name="recordingMode"]:checked').value === 'audio';
+                // Get the selected recording format
+                const format = document.querySelector('input[name="recordingFormat"]:checked').value;
+
+                // First check if the server is running
+                try {
+                    const response = await fetch('http://localhost:3000/api/health')
+                        .catch(() => ({ ok: false }));
+
+                    if (!response.ok) {
+                        throw new Error('Server is not reachable');
+                    }
+
+                    // Check Kurento connection status
+                    const serverStatus = await response.json();
+                    log(`Server is running${serverStatus.kurentoConnected ? ' and connected to Kurento' : ' but not connected to Kurento'}`, 'success');
+
+                    if (!serverStatus.kurentoConnected) {
+                        log('Kurento Media Server is not connected - recording may fail', 'warning');
+                    }
+                } catch (serverError) {
+                    log('Cannot connect to recording server', 'error');
+                    updateStatus('Error: Server is not running on port 3000');
+                    log('Run the server with: nodemon --exec ts-node examples/basic-server.ts', 'info');
+                    startBtn.disabled = false;
+                    return;
+                }
+
+                // Create a MediaStream mixer utility for combining tracks
+                const createMediaStreamMixer = () => {
+                    const audioContext = new AudioContext();
+                    const audioDestination = audioContext.createMediaStreamDestination();
+                    const audioTracks = [];
+                    const videoTracks = [];
+
+                    return {
+                        addTrack(track) {
+                            if (track.kind === 'audio') {
+                                audioTracks.push(track);
+                                const source = audioContext.createMediaStreamSource(new MediaStream([track]));
+                                source.connect(audioDestination);
+                                log(`Added audio track to mixer: ${track.label}`);
+                            } else if (track.kind === 'video') {
+                                videoTracks.push(track);
+                                log(`Added video track to mixer: ${track.label}`);
+                            }
+                        },
+                        getMixedStream() {
+                            const mixedStream = new MediaStream();
+                            // Add all audio tracks from the audio destination
+                            audioDestination.stream.getAudioTracks().forEach(track => {
+                                mixedStream.addTrack(track);
+                                log(`Added mixed audio track to stream`);
+                            });
+                            // Add the first video track only (screen capture)
+                            if (videoTracks.length > 0) {
+                                mixedStream.addTrack(videoTracks[0]);
+                                log(`Added video track to mixed stream`);
+                            }
+                            return mixedStream;
+                        }
+                    };
+                };
+
+                try {
+                    // First create our mixer
+                    const streamMixer = createMediaStreamMixer();
+
+                    if (isAudioOnly) {
+                        // Audio-only mode - just capture microphone
+                        updateStatus('Requesting microphone access...');
+
+                        try {
+                            const micStream = await navigator.mediaDevices.getUserMedia({
+                                audio: true,
+                                video: false
+                            });
+
+                            log('Microphone access granted', 'success');
+
+                            // Add microphone tracks to our mixer
+                            micStream.getAudioTracks().forEach(track => {
+                                streamMixer.addTrack(track);
+                                log(`Added microphone track: ${track.label}`);
+                            });
+
+                            // Set up audio visualization
+                            setupAudioVisualization(micStream);
+
+                            // Get the final stream (audio only)
+                            mediaStream = streamMixer.getMixedStream();
+                            log(`Created audio-only stream with ${mediaStream.getAudioTracks().length} audio tracks`);
+
+                        } catch (micError) {
+                            log('Microphone access denied: ' + micError.message, 'error');
+                            updateStatus('Error: Microphone access required for audio recording');
+                            startBtn.disabled = false;
+                            return;
+                        }
+                    } else {
+                        // Screen + audio mode
+                        updateStatus('Requesting screen access...');
+
+                        // Capture the display (screen/window/tab)
+                        const displayStream = await navigator.mediaDevices.getDisplayMedia({
+                            video: {
+                                cursor: 'always',
+                                displaySurface: 'monitor'
+                            },
+                            audio: true // Try to get system audio
+                        });
+                        log('Screen capture started', 'success');
+
+                        // Add all tracks from display stream to our mixer
+                        displayStream.getTracks().forEach(track => {
+                            streamMixer.addTrack(track);
+                            log(`Added ${track.kind} track from screen: ${track.label}`);
+                        });
+
+                        // Now try to get microphone audio
+                        try {
+                            const micStream = await navigator.mediaDevices.getUserMedia({
+                                audio: true,
+                                video: false
+                            });
+
+                            log('Microphone access granted', 'success');
+
+                            // Add microphone tracks to our mixer
+                            micStream.getAudioTracks().forEach(track => {
+                                streamMixer.addTrack(track);
+                                log(`Added microphone track to mixer: ${track.label}`);
+                            });
+                        } catch (micError) {
+                            log('Microphone access not available or denied: ' + micError.message, 'warning');
+                        }
+
+                        // Get the final mixed stream with all tracks
+                        mediaStream = streamMixer.getMixedStream();
+                        log(`Created mixed stream with ${mediaStream.getAudioTracks().length} audio tracks and ${mediaStream.getVideoTracks().length} video tracks`);
+
+                        // Display the stream in the video element
+                        videoEl.srcObject = mediaStream;
+                    }
+
+                    // Set up track ended handlers
+                    mediaStream.getTracks().forEach(track => {
+                        track.onended = () => {
+                            log(`${track.kind} track ended`, 'warning');
+                            if (isRecording) {
+                                stopRecording();
+                            }
+                        };
+                    });
+
+                    // Connect to server
+                    initializeWebSocket(isAudioOnly);
+
+                } catch (error) {
+                    log(`Error starting recording: ${error.message}`, 'error');
+                    updateStatus(`Error: ${error.message}`);
+                    startBtn.disabled = false;
+                }
+            } catch (error) {
+                log(`Error: ${error.message}`, 'error');
+                updateStatus(`Error: ${error.message}`);
+                startBtn.disabled = false;
+            }
+        });
+
+        // Set up audio visualization
+        function setupAudioVisualization(stream) {
+            if (!stream.getAudioTracks().length) return;
+
+            const audioContext = new AudioContext();
+            const analyser = audioContext.createAnalyser();
+            const source = audioContext.createMediaStreamSource(stream);
+            source.connect(analyser);
+
+            analyser.fftSize = 256;
+            const bufferLength = analyser.frequencyBinCount;
+            const dataArray = new Uint8Array(bufferLength);
+
+            const audioBars = document.querySelectorAll('.audio-bar');
+
+            function updateVisualizer() {
+                if (!isRecording) return;
+
+                analyser.getByteFrequencyData(dataArray);
+
+                let values = 0;
+                let average;
+
+                for (let i = 0; i < bufferLength; i++) {
+                    values += dataArray[i];
+                }
+
+                average = values / bufferLength;
+
+                // Update each bar height based on frequency data
+                audioBars.forEach((bar, i) => {
+                    if (i < bufferLength) {
+                        const barHeight = Math.max(5, Math.min(100, dataArray[i] * 0.5));
+                        bar.style.height = barHeight + 'px';
+                    }
+                });
+
+                requestAnimationFrame(updateVisualizer);
+            }
+
+            updateVisualizer();
+        }
+
+        // Pause/Resume recording (main button - toggles both audio and video)
+        pauseBtn.addEventListener('click', () => {
+            if (!isRecording) return;
+
+            if (!isPaused) {
+                // Pause both audio and video
+                webSocket.send(JSON.stringify({
+                    action: 'pause',
+                    sessionId,
+                    pauseType: 'both'
+                }));
+
+                // Disable all tracks
+                pauseTracks('both');
+
+                log('Pausing recording (both audio and video)', 'info');
+            } else {
+                // Resume both audio and video
+                webSocket.send(JSON.stringify({
+                    action: 'resume',
+                    sessionId,
+                    resumeType: 'both'
+                }));
+
+                // Re-enable all tracks
+                resumeTracks('both');
+
+                log('Resuming recording (both audio and video)', 'info');
+            }
+        });
+
+        // Selective pause buttons
+        pauseBothBtn.addEventListener('click', () => {
+            if (!isRecording) return;
+
+            webSocket.send(JSON.stringify({
+                action: 'pause',
+                sessionId,
+                pauseType: 'both'
+            }));
+
+            pauseTracks('both');
+            log('Pausing both audio and video', 'info');
+        });
+
+        pauseVideoBtn.addEventListener('click', () => {
+            if (!isRecording) return;
+
+            webSocket.send(JSON.stringify({
+                action: 'pause',
+                sessionId,
+                pauseType: 'video-only'
+            }));
+
+            pauseTracks('video-only');
+            log('Pausing video only', 'info');
+        });
+
+        pauseAudioBtn.addEventListener('click', () => {
+            if (!isRecording) return;
+
+            webSocket.send(JSON.stringify({
+                action: 'pause',
+                sessionId,
+                pauseType: 'audio-only'
+            }));
+
+            pauseTracks('audio-only');
+            log('Pausing audio only', 'info');
+        });
+
+        // Selective resume buttons
+        resumeBothBtn.addEventListener('click', () => {
+            if (!isRecording) return;
+
+            webSocket.send(JSON.stringify({
+                action: 'resume',
+                sessionId,
+                resumeType: 'both'
+            }));
+
+            resumeTracks('both');
+            log('Resuming both audio and video', 'info');
+        });
+
+        resumeVideoBtn.addEventListener('click', () => {
+            if (!isRecording) return;
+
+            webSocket.send(JSON.stringify({
+                action: 'resume',
+                sessionId,
+                resumeType: 'video-only'
+            }));
+
+            resumeTracks('video-only');
+            log('Resuming video only', 'info');
+        });
+
+        resumeAudioBtn.addEventListener('click', () => {
+            if (!isRecording) return;
+
+            webSocket.send(JSON.stringify({
+                action: 'resume',
+                sessionId,
+                resumeType: 'audio-only'
+            }));
+
+            resumeTracks('audio-only');
+            log('Resuming audio only', 'info');
+        });
+
+        // Stop recording
+        stopBtn.addEventListener('click', stopRecording);
+
+        function stopRecording() {
+            if (!isRecording) return;
+
+            updateStatus('Stopping recording...');
+            stopBtn.disabled = true;
+            pauseBtn.disabled = true;
+            pauseOptions.style.display = 'none';
+            resumeOptions.style.display = 'none';
+
+            webSocket.send(JSON.stringify({
+                action: 'stop',
+                sessionId
+            }));
+        }
+
+        // Handle page unload
+        window.addEventListener('beforeunload', () => {
+            if (isRecording) {
+                stopRecording();
+            }
+
+            if (webSocket && webSocket.readyState === WebSocket.OPEN) {
+                webSocket.close();
+            }
+        });
+
+        // Initial log message
+        log('Recording demo initialized', 'info');
+    </script>
+</body>
+
+</html>
