@@ -6,7 +6,7 @@ import express from 'express';
 import * as http from 'http';
 import { WebSocketServer } from 'ws';
 import * as path from 'path';
-// Importing directly from src for development
+// Importing directly from src for development "../src"
 // In a real app, you would use: import { ... } from 'recording-sdk';
 import {
     RecordingManager,
@@ -14,7 +14,7 @@ import {
     RecordingQuality,
     MediaProfile,
     RecordingMode,
-} from '../src';
+} from 'recording-sdk';
 import cors from 'cors';
 
 // Create Express app and HTTP server
