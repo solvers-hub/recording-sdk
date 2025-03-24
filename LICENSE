@@ -173,6 +173,29 @@
       incurred by, or claims asserted against, such Contributor by reason
       of your accepting any such warranty or additional liability.
 
+   COMMERCIAL USE ADDENDUM:
+
+   10. Commercial Use. This software is free to use and open source for personal
+       and non-commercial purposes. For commercial usage, including but not
+       limited to usage by for-profit companies, organizations, or individuals
+       for commercial purposes, the following additional conditions apply:
+
+       (a) Prior to commercial use, you must send an email to v.nitish.work@gmail.com
+           explaining your intended commercial use case.
+       
+       (b) You may not sell, license, or redistribute this SDK directly as a
+           standalone commercial product without explicit written permission.
+       
+       (c) You may not create derivative commercial products whose primary purpose
+           is to provide the same functionality as this SDK without explicit
+           written permission.
+       
+       (d) You agree to include attribution to the original project in your
+           commercial application or service that uses this SDK.
+       
+       Failure to comply with these commercial use terms may result in termination
+       of your rights under this license for such commercial use.
+
    END OF TERMS AND CONDITIONS
 
    APPENDIX: How to apply the Apache License to your work.
