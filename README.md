@@ -336,21 +336,3 @@ npm run docs
 ```
 
 This will generate documentation in the `docs` directory. You can then open `docs/index.html` in your browser to view it.
-
-### Markdown Documentation
-
-Run the following command to generate Markdown documentation which is more GitHub-friendly:
-
-```bash
-npm run docs:md
-```
-
-This will generate Markdown documentation in the `docs-md` directory.
-
-### GitHub Pages
-
-The documentation is also available online at [https://solvers-hub.github.io/recording-sdk](https://solvers-hub.github.io/recording-sdk).
-
-### TypeScript IntelliSense
-
-The SDK provides complete TypeScript definitions, so you'll get full IntelliSense support in editors like Visual Studio Code.
